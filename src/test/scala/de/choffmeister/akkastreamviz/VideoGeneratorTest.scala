@@ -22,7 +22,6 @@ class VideoGeneratorTest
   implicit val defaultPatience = PatienceConfig(timeout = Span(15, Seconds), interval = Span(10, Millis))
   implicit val materializer = ActorMaterializer()
 
-  def cap(i: Int, min: Int, max: Int) = Math.min(Math.max(i, min), max)
   "work" in {
     val width = 100
     val height = 100
@@ -47,4 +46,6 @@ class VideoGeneratorTest
     TestKit.shutdownActorSystem(system)
     super.afterAll()
   }
+
+  private def cap(i: Int, min: Int, max: Int) = Math.min(Math.max(i, min), max)
 }
