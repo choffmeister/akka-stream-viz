@@ -1,0 +1,54 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: choffmeister/scala-ci:latest
+    working_directory: ~/akka-stream-viz
+    steps:
+      - checkout
+      - restore_cache:
+          key: akka-stream-viz-{{ checksum "project/build.properties"}}-{{ checksum "build.sbt" }}
+      - run:
+          name: Compile sources
+          command: sbt test:compile
+      - save_cache:
+          key: akka-stream-viz-{{ checksum "project/build.properties"}}-{{ checksum "build.sbt" }}
+          paths:
+            - ~/.sbt
+            - ~/.ivy2
+      - run:
+           name: Lint
+           command: sbt scalafmtCheck test:scalafmtCheck
+      - run:
+          name: Test
+          command: sbt test:test
+
+  publish:
+    docker:
+      - image: choffmeister/scala-ci:latest
+    working_directory: ~/akka-stream-viz
+    steps:
+      - checkout
+      - restore_cache:
+          key: akka-stream-viz-{{ checksum "project/build.properties"}}-{{ checksum "build.sbt" }}
+      - run:
+          name: Publish to bintray
+          command: sbt +publish
+
+workflows:
+  version: 2
+  test-build:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /.*/
+      - publish:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
